@@ -78,7 +78,7 @@ function displayResults(movies) {
 
     card.innerHTML = `
       <img class="movie-poster"
-     src="${movie.Poster !== 'N/A' ? movie.Poster : 'img/NONTROVATA.png'}"
+     src="${movie.Poster !== 'N/A' ? movie.Poster : 'img/nontrovata2.jpg'}"
      onerror="this.onerror=null; this.src='img/NONTROVATA.png';"
      alt="${movie.Poster !== 'N/A' ? movie.Title : 'IMMAGINE NON DISPONIBILE'}">
 
@@ -107,7 +107,7 @@ async function showMovieDetails(imdbID) {
       movieDetail.innerHTML = `
         <button class="close-btn" onclick="closeDetail()">✖</button>
         <img class="movie-poster-large"
-     src="${movie.Poster !== 'N/A' ? movie.Poster : 'img/NONTROVATA.png'}"
+     src="${movie.Poster !== 'N/A' ? movie.Poster : 'img/nontrovata2.jpg'}"
      onerror="this.onerror=null; this.src='img/NONTROVATA.png';"
      alt="${movie.Poster !== 'N/A' ? movie.Title : 'IMMAGINE NON DISPONIBILE'}">
 
