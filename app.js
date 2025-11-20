@@ -1,175 +1,178 @@
-const API_KEY = "c00ac79a";
-const API_URL = "https://www.omdbapi.com/";
+const CHIAVE_API = "c00ac79a";
+const URL_API = "https://www.omdbapi.com/";
 
-const searchInput = document.getElementById("searchInput");
-const searchButton = document.getElementById("searchButton");
-const resultsDiv = document.getElementById("results");
-const prevPageBtn = document.getElementById("prevPage");
-const nextPageBtn = document.getElementById("nextPage");
-const pageNumber = document.getElementById("pageNumber");
-const movieDetail = document.getElementById("movieDetail");
-const overlay = document.getElementById("overlay");
+const inputRicerca = document.getElementById("searchInput");
+const bottoneRicerca = document.getElementById("searchButton");
+const risultatiDiv = document.getElementById("results");
+const btnPaginaPrecedente = document.getElementById("prevPage");
+const btnPaginaSuccessiva = document.getElementById("nextPage");
+const numeroPagina = document.getElementById("pageNumber");
+const dettaglioFilm = document.getElementById("movieDetail");
+const sfondoOscurato = document.getElementById("overlay");
 
+let paginaCorrente = 1;
+let testoRicerca = "";
 
-let currentPage = 1;
-let currentQuery = "";
-// Funzione per tradurre un testo in italiano usando MyMemory
-// Traduzione di testi lunghi suddividendo in blocchi
-async function translateToItalian(text) {
-  const maxLength = 450; // lunghezza massima per richiesta
-  const chunks = [];
+// 🟦 Funzione per tradurre in italiano la trama
+async function traduciInItaliano(testo) {
+  const maxLength = 450;
+  const parti = [];
 
-  // Suddivido il testo in blocchi
-  for (let i = 0; i < text.length; i += maxLength) {
-    chunks.push(text.slice(i, i + maxLength));
+  for (let i = 0; i < testo.length; i += maxLength) {
+    parti.push(testo.slice(i, i + maxLength));
   }
 
-  const translatedChunks = [];
+  const partiTradotte = [];
 
-  for (const chunk of chunks) {
+  for (const blocco of parti) {
     try {
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=en|it`);
-      const data = await res.json();
-      translatedChunks.push(data.responseData.translatedText || chunk);
+      const risposta = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(blocco)}&langpair=en|it`
+      );
+      const dati = await risposta.json();
+      partiTradotte.push(dati.responseData.translatedText || blocco);
     } catch (e) {
-      console.error("Errore traduzione:", e);
-      translatedChunks.push(chunk); // fallback
+      console.error("Errore nella traduzione:", e);
+      partiTradotte.push(blocco);
     }
   }
 
-  // Riassemblo i blocchi tradotti
-  return translatedChunks.join(" ");
+  return partiTradotte.join(" ");
 }
 
 
-// Funzione di ricerca
-async function searchMovies(page = 1) {
-  const query = currentQuery.trim();
+// 🟥 Ricerca film
+async function cercaFilm(pagina = 1) {
+  const query = testoRicerca.trim();
   if (!query) return;
 
-  resultsDiv.innerHTML = "<p>🔎 Caricamento...</p>";
-  movieDetail.classList.add("hidden");
+  risultatiDiv.innerHTML = "<p>🔎 Caricamento...</p>";
+  dettaglioFilm.classList.add("hidden");
 
   try {
-    const response = await fetch(`${API_URL}?apikey=${API_KEY}&s=${query}&page=${page}`);
-    const data = await response.json();
+    const risposta = await fetch(`${URL_API}?apikey=${CHIAVE_API}&s=${query}&page=${pagina}`);
+    const dati = await risposta.json();
 
-    if (data.Response === "True") {
-      displayResults(data.Search);
-      updatePagination(page, data.totalResults);
+    if (dati.Response === "True") {
+      mostraRisultati(dati.Search);
+      aggiornaPaginazione(pagina, dati.totalResults);
     } else {
-      resultsDiv.innerHTML = `<p>Nessun risultato trovato per "<b>${query}</b>"</p>`;
-      prevPageBtn.disabled = true;
-      nextPageBtn.disabled = true;
+      risultatiDiv.innerHTML = `<p>Nessun risultato trovato per "<b>${query}</b>"</p>`;
+      btnPaginaPrecedente.disabled = true;
+      btnPaginaSuccessiva.disabled = true;
     }
-  } catch (error) {
-    console.error("Errore:", error);
-    resultsDiv.innerHTML = "<p>Errore nel recupero dei dati.</p>";
+  } catch (errore) {
+    console.error("Errore:", errore);
+    risultatiDiv.innerHTML = "<p>Errore nel recupero dei dati.</p>";
   }
 }
 
-// Mostra i risultati
-function displayResults(movies) {
-  resultsDiv.classList.remove("shrink");
-  resultsDiv.innerHTML = "";
-  movies.forEach(movie => {
-    const card = document.createElement("div");
-    card.classList.add("movie-card");
 
-    card.innerHTML = `
+// 🟩 Mostra i risultati
+function mostraRisultati(filmTrovati) {
+  risultatiDiv.classList.remove("shrink");
+  risultatiDiv.innerHTML = "";
+
+  filmTrovati.forEach(film => {
+    const scheda = document.createElement("div");
+    scheda.classList.add("movie-card");
+
+    scheda.innerHTML = `
       <img class="movie-poster"
-     src="${movie.Poster !== 'N/A' ? movie.Poster : 'img/nontrovata2.jpg'}"
-     onerror="this.onerror=null; this.src='img/nontrovata2.jpg';"
-     alt="${movie.Poster !== 'N/A' ? movie.Title : 'IMMAGINE NON DISPONIBILE'}">
+           src="${film.Poster !== 'N/A' ? film.Poster : 'img/nontrovata2.jpg'}"
+           onerror="this.onerror=null; this.src='img/nontrovata2.jpg';"
+           alt="${film.Poster !== 'N/A' ? film.Title : 'IMMAGINE NON DISPONIBILE'}">
 
-${movie.Poster === "N/A" ? "<p class='no-image-text'>IMMAGINE NON DISPONIBILE</p>" : ""}
+      ${film.Poster === "N/A" ? "<p class='no-image-text'>IMMAGINE NON DISPONIBILE</p>" : ""}
 
-      <h3>${movie.Title} (${movie.Year})</h3>
+      <h3>${film.Title} (${film.Year})</h3>
     `;
 
-    card.addEventListener("click", () => showMovieDetails(movie.imdbID));
-    resultsDiv.appendChild(card);
+    scheda.addEventListener("click", () => mostraDettagliFilm(film.imdbID));
+    risultatiDiv.appendChild(scheda);
   });
 }
 
-// Mostra i dettagli del film
-async function showMovieDetails(imdbID) {
+
+// 🟨 Mostra i dettagli di un film
+async function mostraDettagliFilm(idIMDb) {
   try {
-    const res = await fetch(`${API_URL}?apikey=${API_KEY}&i=${imdbID}&plot=full`);
-    const movie = await res.json();
+    const risposta = await fetch(`${URL_API}?apikey=${CHIAVE_API}&i=${idIMDb}&plot=full`);
+    const film = await risposta.json();
 
-    if (movie.Response === "True") {
-      resultsDiv.classList.add("shrink");
+    if (film.Response === "True") {
+      risultatiDiv.classList.add("shrink");
 
-      // 🔸 Traduce la trama in italiano prima di mostrarla
-      const tramaTradotta = await translateToItalian(movie.Plot);
+      const tramaTradotta = await traduciInItaliano(film.Plot);
 
-      movieDetail.innerHTML = `
-        <button class="close-btn" onclick="closeDetail()">✖</button>
+      dettaglioFilm.innerHTML = `
+        <button class="close-btn" onclick="chiudiDettaglio()">✖</button>
+
         <img class="movie-poster-large"
-     src="${movie.Poster !== 'N/A' ? movie.Poster : 'img/nontrovata2.jpg'}"
-     onerror="this.onerror=null; this.src='img/nontrovata2.jpg';"
-     alt="${movie.Poster !== 'N/A' ? movie.Title : 'IMMAGINE NON DISPONIBILE'}">
+             src="${film.Poster !== 'N/A' ? film.Poster : 'img/nontrovata2.jpg'}"
+             onerror="this.onerror=null; this.src='img/nontrovata2.jpg';"
+             alt="${film.Poster !== 'N/A' ? film.Title : 'IMMAGINE NON DISPONIBILE'}">
 
-${movie.Poster === "N/A" ? "<p class='no-image-text'>IMMAGINE NON DISPONIBILE</p>" : ""}
+        ${film.Poster === "N/A" ? "<p class='no-image-text'>IMMAGINE NON DISPONIBILE</p>" : ""}
 
         <div class="movie-info">
-          <h2>${movie.Title}</h2>
-          <p><b>Anno:</b> ${movie.Year}</p>
-          <p><b>Genere:</b> ${movie.Genre}</p>
-          <p><b>Regista:</b> ${movie.Director}</p>
-          <p><b>Attori:</b> ${movie.Actors}</p>
+          <h2>${film.Title}</h2>
+          <p><b>Anno:</b> ${film.Year}</p>
+          <p><b>Genere:</b> ${film.Genre}</p>
+          <p><b>Regista:</b> ${film.Director}</p>
+          <p><b>Attori:</b> ${film.Actors}</p>
           <p><b>Trama:</b> ${tramaTradotta}</p>
-          <p><b>Voto IMDb:</b> ${movie.imdbRating}</p>
+          <p><b>Voto IMDb:</b> ${film.imdbRating}</p>
         </div>
       `;
 
-      movieDetail.classList.remove("hidden");
-      overlay.classList.remove("hidden");
+      dettaglioFilm.classList.remove("hidden");
+      sfondoOscurato.classList.remove("hidden");
     }
-  } catch (error) {
-    console.error("Errore nel caricamento dettagli:", error);
+  } catch (errore) {
+    console.error("Errore caricamento dettagli:", errore);
   }
 }
 
 
-
-// Chiudi il dettaglio
-function closeDetail() {
-  movieDetail.classList.add("hidden");
-  overlay.classList.add("hidden");
-  resultsDiv.classList.remove("shrink");
-}
-overlay.addEventListener("click", closeDetail);
-
-
-// Paginazione
-function updatePagination(page, totalResults) {
-  currentPage = page;
-  pageNumber.textContent = `Pagina ${page}`;
-  prevPageBtn.disabled = page <= 1;
-  nextPageBtn.disabled = page * 10 >= totalResults;
+// ❌ Chiudi dettaglio
+function chiudiDettaglio() {
+  dettaglioFilm.classList.add("hidden");
+  sfondoOscurato.classList.add("hidden");
+  risultatiDiv.classList.remove("shrink");
 }
 
-// Eventi
-searchButton.addEventListener("click", () => {
-  currentQuery = searchInput.value;
-  currentPage = 1;
-  searchMovies(currentPage);
+sfondoOscurato.addEventListener("click", chiudiDettaglio);
+
+
+// 🔢 Gestione pagine
+function aggiornaPaginazione(pagina, totaleRisultati) {
+  paginaCorrente = pagina;
+  numeroPagina.textContent = `Pagina ${pagina}`;
+  btnPaginaPrecedente.disabled = pagina <= 1;
+  btnPaginaSuccessiva.disabled = pagina * 10 >= totaleRisultati;
+}
+
+
+// 🖱️ Eventi
+bottoneRicerca.addEventListener("click", () => {
+  testoRicerca = inputRicerca.value;
+  paginaCorrente = 1;
+  cercaFilm(paginaCorrente);
 });
 
-searchInput.addEventListener("keypress", e => {
+inputRicerca.addEventListener("keypress", e => {
   if (e.key === "Enter") {
-    currentQuery = searchInput.value;
-    currentPage = 1;
-    searchMovies(currentPage);
+    testoRicerca = inputRicerca.value;
+    paginaCorrente = 1;
+    cercaFilm(paginaCorrente);
   }
 });
 
-prevPageBtn.addEventListener("click", () => {
-  if (currentPage > 1) searchMovies(currentPage - 1);
+btnPaginaPrecedente.addEventListener("click", () => {
+  if (paginaCorrente > 1) cercaFilm(paginaCorrente - 1);
 });
 
-nextPageBtn.addEventListener("click", () => {
-  searchMovies(currentPage + 1);
+btnPaginaSuccessiva.addEventListener("click", () => {
+  cercaFilm(paginaCorrente + 1);
 });
