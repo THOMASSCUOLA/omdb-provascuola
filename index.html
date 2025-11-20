@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ricerca Film - OMDb</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 Ricerca Film</h1>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Cerca un film...">
+      <button id="searchButton">🔍 Cerca</button>
+    </div>
+
+    <div id="results" class="results-grid"></div>
+
+    <!-- Overlay e dettaglio -->
+    <div id="overlay" class="overlay hidden"></div>
+    <div id="movieDetail" class="movie-detail hidden"></div>
+    
+    <div class="pagination">
+      <button id="prevPage" disabled>⬅️ Precedente</button>
+      <span id="pageNumber">Pagina 1</span>
+      <button id="nextPage" disabled>➡️ Successiva</button>
+    </div>
+    
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
