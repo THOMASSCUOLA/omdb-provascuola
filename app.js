@@ -3,6 +3,8 @@ const URL_API = "https://www.omdbapi.com/";
 
 const inputRicerca = document.getElementById("searchInput");
 const bottoneRicerca = document.getElementById("searchButton");
+const homeButton = document.getElementById("homeButton");
+
 const risultatiDiv = document.getElementById("results");
 const btnPaginaPrecedente = document.getElementById("prevPage");
 const btnPaginaSuccessiva = document.getElementById("nextPage");
@@ -78,15 +80,20 @@ function mostraRisultati(filmTrovati) {
     scheda.classList.add("movie-card");
 
     scheda.innerHTML = `
+    <div class="poster-wrapper">
       <img class="movie-poster"
            src="${film.Poster !== 'N/A' ? film.Poster : 'img/nontrovata2.jpg'}"
-           onerror="this.onerror=null; this.src='img/nontrovata2.jpg';"
-           alt="${film.Poster !== 'N/A' ? film.Title : 'IMMAGINE NON DISPONIBILE'}">
-
-      ${film.Poster === "N/A" ? "<p class='no-image-text'>IMMAGINE NON DISPONIBILE</p>" : ""}
-
-      <h3>${film.Title} (${film.Year})</h3>
-    `;
+           alt="${film.Title}"
+           onerror="this.src='img/nontrovata2.jpg'; this.closest('.poster-wrapper').querySelector('.no-image-text').style.display='block'">
+  
+      <p class='no-image-text' style="display: ${film.Poster === 'N/A' ? 'block' : 'none'};">
+         IMMAGINE NON DISPONIBILE
+      </p>
+    </div>
+  
+    <h3>${film.Title} (${film.Year})</h3>
+  `;
+  
 
     scheda.addEventListener("click", () => mostraDettagliFilm(film.imdbID));
     risultatiDiv.appendChild(scheda);
@@ -108,11 +115,16 @@ async function mostraDettagliFilm(idIMDb) {
       dettaglioFilm.innerHTML = `
         <button class="close-btn" onclick="chiudiDettaglio()">✖</button>
 
-        <img class="movie-poster-large"
-             src="${film.Poster !== 'N/A' ? film.Poster : 'img/nontrovata2.jpg'}"
-             onerror="this.onerror=null; this.src='img/nontrovata2.jpg';"
-             alt="${film.Poster !== 'N/A' ? film.Title : 'IMMAGINE NON DISPONIBILE'}">
+          <div class="poster-wrapper">
+    <img class="movie-poster-large"
+         src="${film.Poster !== 'N/A' ? film.Poster : 'img/nontrovata2.jpg'}"
+         alt="${film.Title}"
+         onerror="this.src='img/nontrovata2.jpg'; this.closest('.poster-wrapper').querySelector('.no-image-text').style.display='block'">
 
+    <p class='no-image-text' style="display: ${film.Poster === 'N/A' ? 'block' : 'none'};">
+       IMMAGINE NON DISPONIBILE
+    </p>
+  </div>
         ${film.Poster === "N/A" ? "<p class='no-image-text'>IMMAGINE NON DISPONIBILE</p>" : ""}
 
         <div class="movie-info">
@@ -152,7 +164,9 @@ function aggiornaPaginazione(pagina, totaleRisultati) {
   btnPaginaPrecedente.disabled = pagina <= 1;
   btnPaginaSuccessiva.disabled = pagina * 10 >= totaleRisultati;
 }
-
+homeButton.addEventListener("click", () => {
+  window.location.reload();
+});
 
 // 🖱️ Eventi
 bottoneRicerca.addEventListener("click", () => {
